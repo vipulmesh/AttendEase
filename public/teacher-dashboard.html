@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard - AttendEase</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .batch-folder {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .batch-header {
+      padding: 1.25rem 1.5rem;
+      background: #F8FAFC;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .batch-header:hover {
+      background: #F1F5F9;
+    }
+    .batch-header.open {
+      border-bottom-color: var(--border);
+    }
+    .batch-content {
+      display: none;
+      padding: 0;
+    }
+    .batch-content.open {
+      display: block;
+    }
+    .transition-transform {
+      transition: transform 0.3s ease;
+    }
+    .rotate {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-overlay" id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><img src="/logo.png" alt="Logo" class="sidebar-logo" style="width:24px; height:24px; margin-right:8px; vertical-align:middle;"> AttendEase</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/teacher-dashboard.html" class="nav-item">
+          <i class="fa-solid fa-users"></i> My Students
+        </a>
+        <a href="/attendance.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i> Mark Attendance
+        </a>
+        <a href="/upload-students.html" class="nav-item">
+          <i class="fa-solid fa-file-excel"></i> Upload Excel
+        </a>
+        <a href="/about.html" class="nav-item">
+          <i class="fa-solid fa-circle-info"></i> About App
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn">
+          <i class="fa-solid fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="user-info">
+          <div class="user-details text-right">
+            <h4 class="user-name-display">Teacher</h4>
+            <span class="user-role-display">Subject</span>
+          </div>
+          <div class="avatar user-initial-display">T</div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="section-header">
+          <h2>My Students</h2>
+          <div style="display: flex; gap: 1rem;">
+            <input type="text" id="search-input" class="form-control" placeholder="Search students..." style="width: 250px;">
+            <a href="/upload-students.html" class="btn btn-primary">
+              <i class="fa-solid fa-plus"></i> Add Students
+            </a>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+           <div class="stat-card" style="background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); flex: 1;">
+              <h4 style="margin: 0; color: var(--text-secondary);">Total Lectures Conducted</h4>
+              <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: bold; color: var(--primary);" id="total-lectures-display">0</p>
+           </div>
+           <div class="stat-card" style="background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); flex: 1; display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                 <h4 style="margin: 0; color: var(--text-secondary);">Subject Defaulters</h4>
+                 <p style="margin: 0.5rem 0 0 0; font-size: 1rem; color: var(--text-secondary);">Students with &lt;75% attendance</p>
+              </div>
+              <button class="btn btn-primary" onclick="generateDefaultersList()"><i class="fa-solid fa-list-ul"></i> View Defaulters</button>
+           </div>
+        </div>
+
+        <div id="students-container">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Defaulters Modal -->
+        <div class="modal-backdrop" id="defaulters-modal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+           <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                 <h2 style="margin:0;">Defaulter List (&lt; 75%)</h2>
+                 <button class="btn btn-outline" onclick="document.getElementById('defaulters-modal').style.display='none'">Close</button>
+              </div>
+              <div class="table-container">
+                 <table>
+                    <thead>
+                       <tr>
+                          <th>Roll No</th>
+                          <th>Name</th>
+                          <th>Batch</th>
+                          <th>Attendance</th>
+                       </tr>
+                    </thead>
+                    <tbody id="defaulters-tbody"></tbody>
+                 </table>
+              </div>
+           </div>
+        </div>
+
+        <!-- Student Details Modal -->
+        <div class="modal-backdrop" id="student-details-modal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 900px; width: 92%; max-height: 85vh; overflow-y: auto;">
+            <div style="display:flex; justify-content: space-between; align-items:center; gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <h2 style="margin:0;" id="student-details-title">Student Attendance</h2>
+                <p style="margin: 0.25rem 0 0 0; color: var(--text-secondary);" id="student-details-subtitle">—</p>
+              </div>
+              <button class="btn btn-outline" onclick="document.getElementById('student-details-modal').style.display='none'">Close</button>
+            </div>
+
+            <div style="display:flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+              <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); flex: 1; min-width: 220px;">
+                <div style="color: var(--text-secondary); font-weight: 500;">Attended / Total</div>
+                <div style="font-size: 1.25rem; font-weight: 700;" id="student-details-counts">0 / 0</div>
+              </div>
+              <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); flex: 1; min-width: 220px;">
+                <div style="color: var(--text-secondary); font-weight: 500;">Percentage</div>
+                <div style="font-size: 1.25rem; font-weight: 700;" id="student-details-percentage">0%</div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th style="width: 140px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="student-details-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = checkAuth(['teacher']);
+      if (!user) return;
+
+      setupUI(user);
+      await loadStudents();
+
+      // Search functionality
+      let debounceTimeout;
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          loadStudents(e.target.value);
+        }, 300);
+      });
+    });
+
+    async function loadStudents(searchQuery = '') {
+      try {
+        const analyticsData = await fetchAPI('/getFacultyAnalytics?facultyId=me');
+        const query = searchQuery.toLowerCase();
+        
+        document.getElementById('total-lectures-display').innerText = analyticsData.totalLectures;
+        
+        let students = analyticsData.studentAnalytics;
+        if (query) {
+           students = students.filter(s => s.name.toLowerCase().includes(query) || s.rollNo.toLowerCase().includes(query));
+        }
+
+        const container = document.getElementById('students-container');
+        container.innerHTML = '';
+
+        if (students.length === 0) {
+          container.innerHTML = `
+            <div style="text-align:center; padding: 4rem 2rem; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--border);">
+              <i class="fa-solid fa-users-slash" style="font-size: 3rem; color: #CBD5E1; margin-bottom: 1rem;"></i>
+              <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">No students found</h3>
+              <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Upload an Excel file to get started.</p>
+              <a href="/upload-students.html" class="btn btn-primary">Add Students</a>
+            </div>
+          `;
+          return;
+        }
+
+        // Group students by Class and Batch
+        const groups = {};
+        students.forEach(student => {
+          const classYear = student.classYear || 'Uncategorized';
+          const batch = student.batch || 'General';
+          const key = `${classYear}::${batch}`;
+          if (!groups[key]) {
+            groups[key] = { classYear, batch, students: [] };
+          }
+          groups[key].students.push(student);
+        });
+
+        // Render groups
+        Object.keys(groups).sort().forEach(key => {
+          const group = groups[key];
+          const folder = document.createElement('div');
+          folder.className = 'batch-folder';
+
+          let rowsHtml = '';
+          group.students.forEach(student => {
+            rowsHtml += `
+              <tr>
+                <td><strong>${student.rollNo}</strong></td>
+                <td>${student.name}</td>
+                <td><span style="font-size: 0.85rem; color: var(--text-secondary);">${student.specialRemark || '-'}</span></td>
+                <td>${student.lecturesAttended} / ${student.totalLectures}</td>
+                <td><strong style="color: ${student.percentage < 75 ? 'red' : 'green'};">${student.percentage}%</strong></td>
+                <td>
+                  <button class="btn btn-outline btn-icon" title="View details" onclick="openStudentDetails('${student.studentId}', '${student.name.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-chart-column"></i>
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+
+          folder.innerHTML = `
+            <div class="batch-header" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open'); this.querySelector('.fa-chevron-down').classList.toggle('rotate')">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="background: #EEF2FF; color: var(--primary); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                  <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <div>
+                  <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">${group.classYear}</h3>
+                  <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Batch: <strong>${group.batch}</strong> &bull; ${group.students.length} Students</p>
+                </div>
+              </div>
+              <div style="color: var(--text-secondary); padding: 0.5rem;">
+                <i class="fa-solid fa-chevron-down transition-transform"></i>
+              </div>
+            </div>
+            <div class="batch-content">
+              <div class="table-container" style="margin: 0; border: none; border-radius: 0; box-shadow: none;">
+                <table style="margin: 0;">
+                  <thead style="background: #F8FAFC;">
+                    <tr>
+                      <th style="padding-left: 1.5rem;">Roll No</th>
+                      <th>Name</th>
+                      <th>Special Remark</th>
+                      <th>Attended / Total</th>
+                      <th>Percentage</th>
+                      <th>Analytics</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml.replace(/<td>/g, '<td style="padding-left: 1.5rem;">').replace(/<td><strong/g, '<td style="padding-left: 1.5rem;"><strong')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+          container.appendChild(folder);
+        });
+      } catch (error) {
+        // Error handled in utility
+      }
+    }
+
+    async function openStudentDetails(studentId, studentName) {
+      try {
+        showLoader();
+        const data = await fetchAPI(`/getFacultyAnalytics?facultyId=me&studentId=${encodeURIComponent(studentId)}`);
+        document.getElementById('student-details-title').innerText = studentName;
+        document.getElementById('student-details-subtitle').innerText = `Session-wise attendance (${data.totalLectures} total lectures)`;
+        document.getElementById('student-details-counts').innerText = `${data.lecturesAttended} / ${data.totalLectures}`;
+        document.getElementById('student-details-percentage').innerHTML =
+          `<span style="color:${data.percentage < 75 ? 'red' : 'green'};"><strong>${data.percentage}%</strong></span>`;
+
+        const tbody = document.getElementById('student-details-tbody');
+        tbody.innerHTML = '';
+        if (!data.sessions || data.sessions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No sessions found yet.</td></tr>';
+        } else {
+          data.sessions.forEach(s => {
+            const color = s.status === 'Present' ? 'green' : 'red';
+            tbody.innerHTML += `
+              <tr>
+                <td><strong>${s.date}</strong></td>
+                <td>${s.startTime || '--:--'} - ${s.endTime || '--:--'}</td>
+                <td><strong style="color:${color};">${s.status}</strong></td>
+              </tr>
+            `;
+          });
+        }
+        document.getElementById('student-details-modal').style.display = 'flex';
+      } catch (e) {
+        // fetchAPI shows toast
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function generateDefaultersList() {
+      try {
+         showLoader();
+         const data = await fetchAPI('/getDefaulters?subjectId=me&type=subject');
+         const tbody = document.getElementById('defaulters-tbody');
+         tbody.innerHTML = '';
+         
+         if(data.defaulters.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No defaulters found!</td></tr>';
+         } else {
+            data.defaulters.forEach(def => {
+               tbody.innerHTML += `
+                 <tr>
+                   <td><strong>${def.rollNo}</strong></td>
+                   <td>${def.name}</td>
+                   <td>${def.classYear} - ${def.batch}</td>
+                   <td style="color:red;"><strong>${Number(def.percentage).toFixed(2)}%</strong> (${def.lecturesAttended}/${def.totalLectures})</td>
+                 </tr>
+               `;
+            });
+         }
+         
+         document.getElementById('defaulters-modal').style.display = 'flex';
+      } catch(e) {} finally { hideLoader(); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - AttendEase</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="loader-overlay" id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><img src="/logo.png" alt="Logo" class="sidebar-logo" style="width:24px; height:24px; margin-right:8px; vertical-align:middle;"> AdminPanel</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/admin-dashboard.html" class="nav-item">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="/about.html" class="nav-item">
+          <i class="fa-solid fa-circle-info"></i> About App
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn">
+          <i class="fa-solid fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <div class="modal-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="user-info">
+          <div class="user-details text-right">
+            <h4 class="user-name-display">Admin</h4>
+            <span class="user-role-display">Administrator</span>
+          </div>
+          <div class="avatar user-initial-display">A</div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon primary">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="stat-details">
+              <h3>Total Teachers</h3>
+              <p id="total-teachers">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon secondary">
+              <i class="fa-solid fa-building-user"></i>
+            </div>
+            <div class="stat-details">
+              <h3>Active Accounts</h3>
+              <p id="active-accounts">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teachers Section -->
+        <div class="section-header">
+          <h2>Manage Teachers</h2>
+          <button class="btn btn-primary" onclick="openModal('addTeacherModal')">
+            <i class="fa-solid fa-plus"></i> Add Teacher
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Email</th>
+                <th>Added On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="teachers-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Reports -->
+        <div class="section-header" style="margin-top: 2rem;">
+          <h2>Reports</h2>
+          <div style="display:flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="btn btn-outline" onclick="openOverallDefaulters()">
+              <i class="fa-solid fa-triangle-exclamation"></i> Overall Defaulters
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container" style="padding: 1.25rem;">
+          <div style="display:flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+            <div class="form-group" style="margin:0; min-width: 260px;">
+              <label>Faculty</label>
+              <select id="report-faculty" class="form-control"></select>
+            </div>
+            <button class="btn btn-primary" onclick="loadFacultyReport()">
+              <i class="fa-solid fa-chart-simple"></i> Load Faculty Report
+            </button>
+            <button class="btn btn-outline" onclick="exportFacultySessionsCsv()">
+              <i class="fa-solid fa-file-csv"></i> Export Sessions CSV
+            </button>
+            <div style="margin-left:auto; color: var(--text-secondary); font-weight: 500;" id="report-summary">—</div>
+          </div>
+
+          <div style="margin-top: 1rem;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                </tr>
+              </thead>
+              <tbody id="report-sessions-tbody">
+                <tr><td colspan="4" style="text-align:center;">Select a faculty and load report.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Teacher Modal -->
+  <div class="modal-backdrop" id="addTeacherModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add New Teacher</h3>
+        <button class="modal-close" onclick="closeModal('addTeacherModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-teacher-form">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="t-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="t-subject" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="t-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Temporary Password</label>
+            <input type="password" id="t-password" class="form-control" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('addTeacherModal')">Cancel</button>
+        <button class="btn btn-primary" form="add-teacher-form" type="submit">Save Teacher</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let lastFacultyReport = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = checkAuth(['admin']);
+      if (!user) return;
+
+      setupUI(user);
+      await loadTeachers();
+      await populateReportTeachers();
+
+      // Form Submit
+      document.getElementById('add-teacher-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const teacherData = {
+          name: document.getElementById('t-name').value,
+          subject: document.getElementById('t-subject').value,
+          email: document.getElementById('t-email').value,
+          password: document.getElementById('t-password').value,
+        };
+
+        try {
+          showLoader();
+          const res = await fetchAPI('/addTeacher', {
+            method: 'POST',
+            body: JSON.stringify(teacherData)
+          });
+          
+          showToast(res.message);
+          closeModal('addTeacherModal');
+          document.getElementById('add-teacher-form').reset();
+          await loadTeachers();
+        } catch (error) {
+          // Handled by fetchAPI
+        } finally {
+          hideLoader();
+        }
+      });
+    });
+
+    async function loadTeachers() {
+      try {
+        const teachers = await fetchAPI('/getTeachers');
+        
+        document.getElementById('total-teachers').textContent = teachers.length;
+        document.getElementById('active-accounts').textContent = teachers.length;
+
+        const tbody = document.getElementById('teachers-table-body');
+        tbody.innerHTML = '';
+
+        if (teachers.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="text-align:center; padding: 2rem;">No teachers found. Click 'Add Teacher' to create one.</td></tr>`;
+          return;
+        }
+
+        teachers.forEach(teacher => {
+          const tr = document.createElement('tr');
+          const date = new Date(teacher.createdAt).toLocaleDateString();
+          tr.innerHTML = `
+            <td>
+              <div style="font-weight: 500">${teacher.name}</div>
+            </td>
+            <td>${teacher.subject}</td>
+            <td>${teacher.email}</td>
+            <td>${date}</td>
+            <td>
+              <button class="btn btn-danger btn-icon" onclick="deleteTeacher('${teacher._id}')" title="Remove Teacher">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        // Handled by fetchAPI
+      }
+    }
+
+    async function populateReportTeachers() {
+      try {
+        const teachers = await fetchAPI('/getTeachers');
+        const select = document.getElementById('report-faculty');
+        select.innerHTML = '';
+        if (teachers.length === 0) {
+          select.innerHTML = '<option value="">No teachers</option>';
+          return;
+        }
+        teachers.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t._id;
+          opt.textContent = `${t.name} (${t.subject})`;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        // toast shown by fetchAPI
+      }
+    }
+
+    async function loadFacultyReport() {
+      const facultyId = document.getElementById('report-faculty').value;
+      if (!facultyId) {
+        showToast('Please select a faculty', 'error');
+        return;
+      }
+      try {
+        showLoader();
+        const data = await fetchAPI(`/attendance/faculty/${facultyId}`);
+        lastFacultyReport = data;
+        document.getElementById('report-summary').innerText =
+          `${data.faculty.name} • ${data.faculty.subject} • Sessions: ${data.sessionsTaken}`;
+
+        const tbody = document.getElementById('report-sessions-tbody');
+        tbody.innerHTML = '';
+        if (!data.sessions || data.sessions.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No sessions found.</td></tr>';
+          return;
+        }
+
+        data.sessions.forEach(s => {
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${s.date}</strong></td>
+              <td>${s.startTime || '--:--'} - ${s.endTime || '--:--'}</td>
+              <td style="color: green;"><strong>${s.presentCount}</strong></td>
+              <td style="color: red;"><strong>${s.absentCount}</strong></td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        // toast shown by fetchAPI
+      } finally {
+        hideLoader();
+      }
+    }
+
+    function exportFacultySessionsCsv() {
+      if (!lastFacultyReport || !lastFacultyReport.sessions) {
+        showToast('Load a faculty report first', 'error');
+        return;
+      }
+      const rows = [
+        ['Date', 'StartTime', 'EndTime', 'Present', 'Absent'],
+        ...lastFacultyReport.sessions.map(s => [s.date, s.startTime || '', s.endTime || '', s.presentCount, s.absentCount]),
+      ];
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `faculty_sessions_${lastFacultyReport.faculty.subject}_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      document.body.removeChild(a);
+      showToast('CSV exported');
+    }
+
+    async function openOverallDefaulters() {
+      try {
+        showLoader();
+        const data = await fetchAPI('/defaulters/overall');
+        const modal = document.getElementById('overall-defaulters-modal');
+        const tbody = document.getElementById('overall-defaulters-tbody');
+        tbody.innerHTML = '';
+        if (!data.defaulters || data.defaulters.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No defaulters found!</td></tr>';
+        } else {
+          data.defaulters.forEach(d => {
+            tbody.innerHTML += `
+              <tr>
+                <td><strong>${d.rollNo}</strong></td>
+                <td>${d.name}</td>
+                <td>${d.classYear}</td>
+                <td>${d.batch}</td>
+                <td style="color:red;"><strong>${Number(d.percentage).toFixed(2)}%</strong> (${d.lecturesAttended}/${d.totalLectures})</td>
+              </tr>
+            `;
+          });
+        }
+        modal.style.display = 'flex';
+      } catch (e) {
+        // toast shown by fetchAPI
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function deleteTeacher(id) {
+      if (!confirm('Are you sure you want to remove this teacher? This will also delete all associated students and attendance records.')) {
+        return;
+      }
+
+      try {
+        showLoader();
+        await fetchAPI(`/removeTeacher?id=${id}`, { method: 'DELETE' });
+        showToast('Teacher removed successfully');
+        await loadTeachers();
+      } catch (error) {
+        // Handled
+      } finally {
+        hideLoader();
+      }
+    }
+  </script>
+
+  <!-- Overall Defaulters Modal -->
+  <div class="modal-backdrop" id="overall-defaulters-modal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 900px; width: 92%; max-height: 80vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin:0;">Overall Defaulters (&lt; 75%)</h2>
+        <button class="btn btn-outline" onclick="document.getElementById('overall-defaulters-modal').style.display='none'">Close</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Roll No</th>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Batch</th>
+              <th>Attendance</th>
+            </tr>
+          </thead>
+          <tbody id="overall-defaulters-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

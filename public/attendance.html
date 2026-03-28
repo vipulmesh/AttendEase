@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mark Attendance - AttendEase</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .date-picker-wrapper {
+      background: var(--surface);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .attendance-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #F9FAFB;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-overlay" id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><img src="/logo.png" alt="Logo" class="sidebar-logo" style="width:24px; height:24px; margin-right:8px; vertical-align:middle;"> AttendEase</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/teacher-dashboard.html" class="nav-item">
+          <i class="fa-solid fa-users"></i> My Students
+        </a>
+        <a href="/attendance.html" class="nav-item">
+          <i class="fa-solid fa-calendar-check"></i> Mark Attendance
+        </a>
+        <a href="/upload-students.html" class="nav-item">
+          <i class="fa-solid fa-file-excel"></i> Upload Excel
+        </a>
+        <a href="/about.html" class="nav-item">
+          <i class="fa-solid fa-circle-info"></i> About App
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn">
+          <i class="fa-solid fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="user-info">
+          <div class="user-details text-right">
+            <h4 class="user-name-display">Teacher</h4>
+            <span class="user-role-display">Subject</span>
+          </div>
+          <div class="avatar user-initial-display">T</div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="section-header">
+          <h2>Mark Attendance</h2>
+          <button class="btn btn-secondary" onclick="exportAttendance()">
+            <i class="fa-solid fa-download"></i> Export Excel
+          </button>
+        </div>
+
+        <div class="date-picker-wrapper" style="flex-wrap: wrap; gap: 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 500; color: var(--text-secondary);">Session:</label>
+            <select id="attendance-session" class="form-control" style="width: auto; min-width: 200px;">
+              <option value="">Select Session...</option>
+            </select>
+          </div>
+          <button class="btn btn-outline" id="create-session-btn"><i class="fa-solid fa-plus"></i> New Session</button>
+          
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+            <label style="font-weight: 500; color: var(--text-secondary);">Class/Year:</label>
+            <select id="filter-class" class="form-control" style="width: auto; min-width: 140px;">
+              <option value="">All Classes</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 500; color: var(--text-secondary);">Batch:</label>
+            <select id="filter-batch" class="form-control" style="width: auto; min-width: 140px;">
+              <option value="">All Batches</option>
+            </select>
+          </div>
+          <button class="btn btn-primary ml-auto" id="load-date-btn"><i class="fa-solid fa-filter"></i> Apply & Load</button>
+        </div>
+
+        <!-- Create Session Modal inline for simplicity -->
+        <div id="create-session-form" class="date-picker-wrapper" style="display:none; flex-wrap: wrap; gap: 1.5rem; background: #EEF2FF; border: 1px solid #C7D2FE;">
+          <h4 style="width: 100%; margin: 0; color: var(--primary);">Create New Session</h4>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 500;">Date:</label>
+            <input type="date" id="new-session-date" class="form-control">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 500;">Start:</label>
+            <input type="time" id="new-session-start" class="form-control">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-weight: 500;">End:</label>
+            <input type="time" id="new-session-end" class="form-control">
+          </div>
+          <button class="btn btn-primary" id="save-new-session"><i class="fa-solid fa-check"></i> Save Session</button>
+          <button class="btn btn-secondary" id="cancel-new-session">Cancel</button>
+        </div>
+
+        <div class="table-container" id="attendance-container" style="display: none;">
+          <div class="attendance-controls">
+            <p style="font-weight: 500; color: var(--text-secondary);" id="records-info">0 Students Listed</p>
+            <div style="display: flex; gap: 1rem;">
+              <button class="btn btn-outline" id="mark-all-present">Mark All Present</button>
+              <button class="btn btn-primary" id="save-attendance-btn">Save Attendance</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th style="width: 150px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div id="no-students-msg" style="display: none; text-align: center; padding: 3rem; background: var(--surface); border-radius: var(--radius);">
+          <i class="fa-solid fa-users-slash" style="font-size: 3rem; color: var(--border); margin-bottom: 1rem;"></i>
+          <h3>No students found</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">You need to add students before marking attendance.</p>
+          <a href="/upload-students.html" class="btn btn-primary">Go to Upload Page</a>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let allStudents = [];
+    let currentAttendance = {}; // Maps studentId to status
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = checkAuth(['teacher']);
+      if (!user) return;
+      setupUI(user);
+
+      // Populate filters and sessions
+      await populateFilters();
+      await loadSessions();
+
+      // UI Events for sessions
+      document.getElementById('create-session-btn').addEventListener('click', () => {
+        document.getElementById('create-session-form').style.display = 'flex';
+        document.getElementById('new-session-date').value = new Date().toISOString().split('T')[0];
+      });
+
+      document.getElementById('cancel-new-session').addEventListener('click', () => {
+        document.getElementById('create-session-form').style.display = 'none';
+      });
+
+      document.getElementById('save-new-session').addEventListener('click', async () => {
+        const date = document.getElementById('new-session-date').value;
+        const startTime = document.getElementById('new-session-start').value;
+        const endTime = document.getElementById('new-session-end').value;
+        
+        if (!date || !startTime || !endTime) {
+           showToast('All fields required', 'error');
+           return;
+        }
+
+        try {
+           showLoader();
+           await fetchAPI('/createSession', {
+             method: 'POST',
+             body: JSON.stringify({ date, startTime, endTime })
+           });
+           showToast('Session created');
+           document.getElementById('create-session-form').style.display = 'none';
+           await loadSessions(); // Reload dropdown
+        } catch(e) {} finally { hideLoader(); }
+      });
+
+      // Event listeners
+      document.getElementById('load-date-btn').addEventListener('click', () => {
+        const sessionId = document.getElementById('attendance-session').value;
+        if (!sessionId) {
+           showToast('Please select a session', 'error');
+           return;
+        }
+        initializeAttendance(sessionId);
+      });
+
+      document.getElementById('mark-all-present').addEventListener('click', () => {
+        const checkboxes = document.querySelectorAll('.attendance-toggle');
+        checkboxes.forEach(cb => cb.checked = true);
+      });
+
+      document.getElementById('save-attendance-btn').addEventListener('click', saveAttendance);
+    });
+
+    async function populateFilters() {
+      try {
+        const students = await fetchAPI('/getStudents');
+        const classes = new Set();
+        const batches = new Set();
+        
+        students.forEach(s => {
+          if (s.classYear) classes.add(s.classYear);
+          if (s.batch) batches.add(s.batch);
+        });
+
+        const classSelect = document.getElementById('filter-class');
+        [...classes].sort().forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          classSelect.appendChild(opt);
+        });
+
+        const batchSelect = document.getElementById('filter-batch');
+        [...batches].sort().forEach(b => {
+          const opt = document.createElement('option');
+          opt.value = b;
+          opt.textContent = b;
+          batchSelect.appendChild(opt);
+        });
+      } catch (error) {
+        // Handled in utility
+      }
+    }
+
+    async function loadSessions() {
+      try {
+        const sessions = await fetchAPI('/getSessions');
+        const sessionSelect = document.getElementById('attendance-session');
+        sessionSelect.innerHTML = '<option value="">Select Session...</option>';
+        sessions.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s._id;
+          opt.textContent = `${s.date} (${s.startTime} - ${s.endTime})`;
+          sessionSelect.appendChild(opt);
+        });
+        
+        // Auto select first session and load if available
+        if (sessions.length > 0) {
+           sessionSelect.value = sessions[0]._id;
+           initializeAttendance(sessions[0]._id);
+        }
+      } catch (e) {
+        showToast('Failed to load sessions', 'error');
+      }
+    }
+
+    async function initializeAttendance(sessionId) {
+      if (!sessionId) {
+        showToast('Please select a session', 'error');
+        return;
+      }
+
+      try {
+        showLoader();
+        // Fetch ALL students and existing attendance for session in parallel
+        const [studentsRes, attendanceRes] = await Promise.all([
+          fetchAPI('/getStudents'),
+          fetchAPI(`/markAttendance?sessionId=${sessionId}`)
+        ]);
+
+        const classFilter = document.getElementById('filter-class').value;
+        const batchFilter = document.getElementById('filter-batch').value;
+
+        // Filter students client-side
+        allStudents = studentsRes.filter(s => {
+          if (classFilter && s.classYear !== classFilter) return false;
+          if (batchFilter && s.batch !== batchFilter) return false;
+          return true;
+        });
+
+        currentAttendance = {};
+
+        // Map existing attendance
+        attendanceRes.forEach(record => {
+          currentAttendance[record.studentId] = record.status;
+        });
+
+        renderTable();
+      } catch (error) {
+        // Errors handled in fetchAPI wrapper
+      } finally {
+        hideLoader();
+      }
+    }
+
+    function renderTable() {
+      const container = document.getElementById('attendance-container');
+      const noStudentsMsg = document.getElementById('no-students-msg');
+      const tbody = document.getElementById('attendance-table-body');
+
+      if (allStudents.length === 0) {
+        container.style.display = 'none';
+        noStudentsMsg.style.display = 'block';
+        return;
+      }
+
+      container.style.display = 'block';
+      noStudentsMsg.style.display = 'none';
+      document.getElementById('records-info').textContent = `${allStudents.length} Students Listed`;
+
+      tbody.innerHTML = '';
+
+      allStudents.forEach(student => {
+        const tr = document.createElement('tr');
+        
+        // Check if previously marked Present. Default is Absent if no record
+        const status = currentAttendance[student._id] || 'Absent';
+        const isPresent = status === 'Present';
+
+        tr.innerHTML = `
+          <td><strong>${student.rollNo}</strong></td>
+          <td>
+            ${student.name}
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              ${student.classYear || 'N/A'} - ${student.batch || 'N/A'}
+            </div>
+          </td>
+          <td style="text-align: center;">
+            <label class="toggle-switch">
+              <input type="checkbox" class="attendance-toggle" data-id="${student._id}" ${isPresent ? 'checked' : ''}>
+              <span class="toggle-slider"></span>
+            </label>
+          </td>
+        `;
+
+        // Update slider pseudo-element colors via css based on checked state
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function saveAttendance() {
+      const sessionId = document.getElementById('attendance-session').value;
+      if (!sessionId) {
+        showToast('Please select a session first', 'error');
+        return;
+      }
+
+      const records = [];
+      const toggles = document.querySelectorAll('.attendance-toggle');
+      
+      toggles.forEach(toggle => {
+        records.push({
+          studentId: toggle.getAttribute('data-id'),
+          status: toggle.checked ? 'Present' : 'Absent'
+        });
+      });
+
+      if (records.length === 0) return;
+
+      try {
+        showLoader();
+        document.getElementById('save-attendance-btn').disabled = true;
+
+        const res = await fetchAPI('/markAttendance', {
+          method: 'POST',
+          body: JSON.stringify({ sessionId, records })
+        });
+
+        showToast(res.message);
+        
+        // Re-sync current state
+        records.forEach(r => {
+          currentAttendance[r.studentId] = r.status;
+        });
+
+      } catch (error) {
+        // Handled
+      } finally {
+        hideLoader();
+        document.getElementById('save-attendance-btn').disabled = false;
+      }
+    }
+
+    async function exportAttendance() {
+      const sessionId = document.getElementById('attendance-session').value;
+      const url = `/exportAttendance${sessionId ? '?sessionId=' + sessionId : ''}`;
+
+      try {
+        showLoader();
+        const blob = await fetchAPI(url);
+        
+        // Create link to download blob
+        const a = document.createElement('a');
+        a.href = window.URL.createObjectURL(blob);
+        a.download = `attendance_report_${sessionId || 'all'}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+        showToast('Export successful');
+      } catch (error) {
+        // Error toast shown in fetchAPI wrapper
+      } finally {
+        hideLoader();
+      }
+    }
+  </script>
+</body>
+</html>

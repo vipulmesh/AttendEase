@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About App - AttendEase</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .about-section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .about-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .about-header i {
+      font-size: 2rem;
+    }
+    .about-content p {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .tech-stack {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .tech-badge {
+      background: #EEF2FF;
+      color: var(--primary);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .developer-card {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      background: #F9FAFB;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .dev-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 600;
+    }
+    .dev-info h3 {
+      margin-bottom: 0.2rem;
+    }
+    .dev-info p {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    .social-links a {
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      margin-right: 1rem;
+      transition: color 0.3s;
+    }
+    .social-links a:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="loader-overlay" id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2><img src="/logo.png" alt="Logo" class="sidebar-logo" style="width:24px; height:24px; margin-right:8px; vertical-align:middle;"> AttendEase</h2>
+      </div>
+      <nav class="sidebar-nav">
+        <!-- We dynamically set the href of the dashboard link via JS -->
+        <a href="#" id="back-to-dashboard" class="nav-item">
+          <i class="fa-solid fa-arrow-left"></i> Dashboard
+        </a>
+        <a href="/about.html" class="nav-item active">
+          <i class="fa-solid fa-circle-info"></i> About App
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn">
+          <i class="fa-solid fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <div class="modal-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="user-info">
+          <div class="user-details text-right">
+            <h4 class="user-name-display">User</h4>
+            <span class="user-role-display">Role</span>
+          </div>
+          <div class="avatar user-initial-display">U</div>
+        </div>
+      </header>
+
+      <div class="content-area" style="max-width: 900px;">
+        <div class="section-header">
+          <h2>About Application</h2>
+        </div>
+
+        <div class="about-section">
+          <div class="about-header">
+            <div class="about-card">
+            <h3>AttendEase</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Version 1.0.0</p>
+            <p style="margin-bottom: 1.5rem; line-height: 1.7;">
+              AttendEase is a comprehensive platform designed to streamline student attendance tracking for educational institutions. 
+              The application provides dedicated dashboards for administrators to manage teacher accounts, and for teachers to easily mark daily attendance, manage their student lists, and generate Excel reports.
+            </p>
+
+            
+            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Core Features:</h4>
+            <ul style="color: var(--text-secondary); padding-left: 1.5rem; margin-bottom: 1.5rem;">
+              <li>Role-based access control (Admin & Teacher)</li>
+              <li>Bulk student upload via Excel (.xlsx)</li>
+              <li>Daily attendance marking with automated date tracking</li>
+              <li>One-click Excel report generation</li>
+            </ul>
+
+            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Technology Stack:</h4>
+            <div class="tech-stack">
+              <span class="tech-badge"><i class="fa-brands fa-node-js"></i> Node.js & Express</span>
+              <span class="tech-badge"><i class="fa-solid fa-database"></i> MongoDB</span>
+              <span class="tech-badge"><i class="fa-brands fa-html5"></i> HTML5 & CSS3</span>
+              <span class="tech-badge"><i class="fa-brands fa-js"></i> Vanilla JS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <div class="about-header">
+            <i class="fa-solid fa-user-astronaut"></i>
+            <h3>Developer Information</h3>
+          </div>
+          <div class="developer-card">
+            <div class="dev-avatar">VM</div>
+            <div class="dev-info">
+              <h3>Vipul Meshram</h3>
+              <p>Mechanical Engineering Student</p>
+              <p>RSCOE,Pune</p>
+
+              <div class="social-links">
+                <a href="#" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                <a href="#" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="mailto:vipulmeshramv20@gmail.com" title="Email"><i class="fa-solid fa-envelope"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="about-section">
+          <div class="about-header">
+            <i class="fa-solid fa-user-astronaut"></i>
+            <h3>Special Thanks</h3>
+          </div>
+          <!-- <div class="developer-card">
+            <div class="dev-avatar">VM</div>
+            <div class="dev-info">
+              <h3>xxxxx   xxxxxxxxxxxxxxx</h3>
+              <p>Mechanical Engineering </p>
+              <p>RSCOE,Pune</p> -->
+
+              <div class="social-links">
+                <a href="https://github.com/vipulmesh" title="GitHub"><i class="fa-brands fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/vipul-meshram-83645732a/" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                <a href="mailto:vipulmeshramv20@gmail.com" title="Email"><i class="fa-solid fa-envelope"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check auth for any role mapping
+      const user = checkAuth(); // No strict role checking, both can access
+      if (!user) return;
+
+      setupUI(user);
+
+      // Setup "Back to Dashboard" link dynamically
+      const backLink = document.getElementById('back-to-dashboard');
+      if (user.role === 'admin') {
+        backLink.href = '/admin-dashboard.html';
+      } else {
+        backLink.href = '/teacher-dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

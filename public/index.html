@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendEase</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Global Loader -->
+  <div class="loader-overlay" id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay for smooth transition feel
+      setTimeout(() => {
+        const token = getToken();
+        const user = getUser();
+        
+        if (!token || !user) {
+          window.location.replace('/login.html');
+        } else if (user.role === 'admin') {
+          window.location.replace('/admin-dashboard.html');
+        } else if (user.role === 'teacher') {
+          window.location.replace('/teacher-dashboard.html');
+        } else {
+          logout();
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>
